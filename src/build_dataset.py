@@ -38,9 +38,13 @@ def validate(df: pd.DataFrame) -> pd.DataFrame:
     suspect = pd.Series(False, index=df.index)
     for col, ceiling in SOFT_CEILINGS.items():
         suspect |= df[col] > ceiling
+
+    # NEW: PM10 includes PM2.5, so PM2.5 > PM10 is physically impossible.
+    # This must come BEFORE the line below that writes the column.
+    suspect |= df["pm2_5"] > df["pm10"]
+
     df["is_suspect"] = suspect
     return df
-
 
 def build_all(cities: list) -> tuple:
     """Fetch every city. One failure must not kill the whole run."""
